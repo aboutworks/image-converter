@@ -30,7 +30,7 @@ def allowed_file(filename):
 # 路由：主页
 @app.route('/')
 def index():
-    svg_files = os.listdir(app.config['OUTPUT_FOLDER'])
+    svg_files = [f for f in os.listdir(app.config['OUTPUT_FOLDER']) if not f.startswith('.')]
     return render_template('index.html', svg_files=svg_files)
 
 # 路由：上传 PDF
