@@ -5,23 +5,36 @@ from threading import Thread
 import time
 from scour.scour import scourString
 import os
+from converter import convert_pdf_to_svg, convert_to_png, convert_to_jpg, convert_to_webp
+from rename_organize import rename_and_organize_files
 
 app = Flask(__name__)
 
 # 配置
-UPLOAD_FOLDER = 'uploads/pdfs'
-OUTPUT_FOLDER = 'uploads/svgs'
-ALLOWED_EXTENSIONS = {'pdf'}
+UPLOAD_FOLDER = {
+    'pdf': 'uploads/pdf',
+    'jpg': 'uploads/jpg',
+    'jpeg': 'uploads/jpeg',
+    'png': 'uploads/png',
+    'svg': 'uploads/svg',
+    'webp': 'uploads/webp'
+}
+OUTPUT_FOLDER = {
+    'svg': 'outputs/svg',
+    'png': 'outputs/png',
+    'jpg': 'outputs/jpg',
+    'webp': 'outputs/webp'
+}
+ALLOWED_EXTENSIONS = {'pdf', 'jpg', 'jpeg', 'png', 'svg', 'webp'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['OUTPUT_FOLDER'] = OUTPUT_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB 限制
 
 # 确保目录存在
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(OUTPUT_FOLDER, exist_ok=True)
-
-# 全局变量：存储每个文件的转换进度
-progress_status = {}
+for folder in UPLOAD_FOLDER.values():
+    os.makedirs(folder, exist_ok=True)
+for folder in OUTPUT_FOLDER.values():
+    os.makedirs(folder, exist_ok=True)
 
 # 辅助函数：检查文件扩展名
 def allowed_file(filename):
@@ -30,69 +43,83 @@ def allowed_file(filename):
 # 路由：主页
 @app.route('/')
 def index():
-    svg_files = [f for f in os.listdir(app.config['OUTPUT_FOLDER']) if not f.startswith('.')]
-    return render_template('index.html', svg_files=svg_files)
+    all_files = []
+    for folder in app.config['OUTPUT_FOLDER'].values():
+        files = [os.path.join(folder, f) for f in os.listdir(folder) if not f.startswith('.')]
+        all_files.extend(files)
+    return render_template('index.html', svg_files=all_files)
 
 # 路由：上传 PDF
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    if 'file' not in request.files:
-        return redirect(url_for('index'))
-    file = request.files['file']
-    if file.filename == '':
-        return redirect(url_for('index'))
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        pdf_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(pdf_path)
-        # 初始化进度为 0
-        progress_status[filename] = 0
-        # 启动转换线程
-        thread = Thread(target=convert_pdf_to_svg, args=(filename,))
-        thread.start()
-        return render_template('progress.html', filename=filename)
-    return redirect(url_for('index'))
+    if 'files' not in request.files:
+        return jsonify({'message': 'No file part'}), 400
+    files = request.files.getlist('files')
+    if not files:
+        return jsonify({'message': 'No files selected'}), 400
+
+    formats = request.form.getlist('formats')
+    if not formats:
+        return jsonify({'message': 'No formats selected'}), 400
+
+    for file in files:
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            if '.' in filename:
+                ext = filename.rsplit('.', 1)[1].lower()
+                if ext in app.config['UPLOAD_FOLDER']:
+                    upload_folder = app.config['UPLOAD_FOLDER'][ext]
+                    file_path = os.path.join(upload_folder, filename)
+                    file.save(file_path)
+                else:
+                    print(f"Unsupported file type: {ext}")
+                    continue
+            else:
+                print(f"File {filename} has no extension")
+                continue
+
+            # Rename and organize the uploaded file
+            renamed_files = rename_and_organize_files(upload_folder)
+
+            # Iterate through the renamed files and convert them
+            for renamed_file in renamed_files:
+                renamed_filename = os.path.basename(renamed_file)
+                if 'svg' in formats:
+                    thread = Thread(target=convert_pdf_to_svg, args=(renamed_file, app.config['OUTPUT_FOLDER'], renamed_filename))
+                    thread.start()
+                if 'png' in formats:
+                    thread = Thread(target=convert_to_png, args=(renamed_file, app.config['OUTPUT_FOLDER'], renamed_filename))
+                    thread.start()
+                if 'jpg' in formats:
+                    thread = Thread(target=convert_to_jpg, args=(renamed_file, app.config['OUTPUT_FOLDER'], renamed_filename))
+                    thread.start()
+                if 'webp' in formats:
+                    thread = Thread(target=convert_to_webp, args=(renamed_file, app.config['OUTPUT_FOLDER'], renamed_filename))
+                    thread.start()
+
+    return jsonify({'message': 'Conversion started successfully'})
 
 # 路由：下载 SVG
 @app.route('/download/<filename>')
 def download_file(filename):
-    return send_from_directory(app.config['OUTPUT_FOLDER'], filename)
+    return send_from_directory(app.config['OUTPUT_FOLDER'], filename, as_attachment=True)
 
 # 函数：将 PDF 转换为 SVG
-def convert_pdf_to_svg(filename):
-    pdf_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    doc = fitz.open(pdf_path)
-    total_pages = len(doc)  # 获取总页数
-    for page_num in range(total_pages):
-        svg_filename = f"{os.path.splitext(filename)[0]}_page{page_num + 1}.svg"
-        svg_path = os.path.join(app.config['OUTPUT_FOLDER'], svg_filename)
-        page = doc[page_num]
-        svg_content = page.get_svg_image()
+def convert_pdf_to_svg(file_path, output_folder, filename):
+    pass
 
-        # 优化 SVG 内容
-        scour_options = {
-            "remove_metadata": True,
-            "strip_comments": True,
-            "shorten_ids": True,
-        }
-        optimized_svg = scourString(svg_content, options=scour_options)
+# 函数：将 PDF 转换为 PNG
+def convert_to_png(file_path, output_folder, filename):
+    pass
 
-        # 保存优化后的 SVG
-        with open(svg_path, 'w') as svg_file:
-            svg_file.write(optimized_svg)
+# 函数：将 PDF 转换为 JPG
+def convert_to_jpg(file_path, output_folder, filename):
+    pass
 
-        # 更新进度
-        progress_status[filename] = int(((page_num + 1) / total_pages) * 100)
+# 函数：将 PDF 转换为 WEBP
+def convert_to_webp(file_path, output_folder, filename):
+    pass
 
-    doc.close()
-    # 确保进度为 100%
-    progress_status[filename] = 100
-
-# 路由：检查转换进度
-@app.route('/progress/<filename>')
-def check_progress(filename):
-    progress = progress_status.get(filename, 0)  # 获取当前进度
-    return jsonify({'status': f'{progress}%'})  # 返回百分比进度
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=3010, debug=True)

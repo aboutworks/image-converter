@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,45 +8,82 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 
 </head>
+
 <body>
-    <header>
-        <h1>PDF to SVG Converter</h1>
-        <button id="toggle-upload">Toggle Upload</button>
-    </header>
-    <section id="upload-container">
-        <div>
-        <section class="upload-section">
-            <form action="/upload" method="post" enctype="multipart/form-data">
-                <label for="file">Upload PDF:</label>
-                <input type="file" name="file" id="file" accept=".pdf" required>
-                <button type="submit">Upload</button>
-            </form>
-        </section>
-        <section class="preview-section">
-            <h2>PDF Preview</h2>
-            <div id="pdf-preview">
-                <p>No PDF selected</p>
-            </div>
-        </section>
-        </div>
-    </section>
-    <main>
-        <section class="converted-files-section">
-            <h2>Converted SVG Files</h2>
-            <div class="image-grid">
-                {% for svg_file in svg_files %}
-                <div class="image-item">
-                    <a href="{{ url_for('download_file', filename=svg_file) }}">
-                        <img src="{{ url_for('download_file', filename=svg_file) }}" alt="{{ svg_file }}">
-                    </a>
+    <div id="app">
+        <header>
+            <h1>PDF to SVG Converter</h1>
+
+        </header>
+
+        <main>
+
+            <aside id="upload-container">
+        
+                <div>
+                    <div class="upload-section">
+                        <form method="post" enctype="multipart/form-data">
+                            <label for="file">Upload File:</label>
+                            <input type="file" name="files" id="file" accept=".pdf, .jpg, .jpeg, .png, .svg, .webp"
+                                multiple required>
+                            <label>
+                                <input type="checkbox" name="formats" value="svg"> SVG
+                            </label>
+                            <label>
+                                <input type="checkbox" name="formats" value="png"> PNG
+                            </label>
+                            <label>
+                                <input type="checkbox" name="formats" value="jpg"> JPG
+                            </label>
+                            <label>
+                                <input type="checkbox" name="formats" value="webp"> WEBP
+                            </label>
+                            <button type="submit">Upload</button>
+                        </form>
+                    </div>
+                    <div class="preview-section">
+                        <h2>Image Preview</h2>
+                        <div id="image-list"></div>
+                        <div id="image-preview">
+                            <p>No Files selected</p>
+                        </div>
+                    </div>
                 </div>
-                {% endfor %}
-            </div>
-        </section>
-    </main>
-    <footer>
-        <p>&copy; 2025 PDF to SVG Converter</p>
-    </footer>
+            </aside>
+
+            <div class="toggle-button" id="toggle-upload"> Toggle Upload </div>
+
+            <section class="converted-files-section">
+                <div id="conversion-popup" class="popup" style="display:none;">
+                    <div class="popup-content">
+                        <span class="close-button">&times;</span>
+                        <h2>Conversion Progress</h2>
+                        <div id="conversion-log"></div>
+                    </div>
+                </div>
+                <h2>Converted Files</h2>
+                <div class="image-grid">
+                    {% for file in svg_files %}
+                    <div class="image-item">
+                        <a href="{{ url_for('download_file', filename=file) }}">
+                            <img src="{{ url_for('download_file', filename=file) }}" alt="{{ file }}">
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+
+
+        </main>
+
+
+
+        <footer>
+           &copy; 2025 PDF to SVG Converter
+        </footer>
+    </div>
 </body>
+
 </html>
+<script src="https://unpkg.com/page/page.js"></script>
 <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>

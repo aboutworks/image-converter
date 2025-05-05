@@ -1,29 +1,33 @@
-# Image
+# Requirements
+	•	Python 3.7+
+	•	PyMuPDF (fitz)
+	•	Pillow
+	•	Other dependencies listed in requirements.txt
+
+# Screenshots
+
+(Optional: Insert some screenshots here showing the application in use.)
 
 ![](./imgs/1.png)
 ![](./imgs/2.png)
 
-# run 
-pdf2to 
+# Contributing
 
-```bash
-python3 app.py
-```
+Contributions are welcome! Feel free to open an issue or submit a pull request.
 
-```bash
-# 创建虚拟环境及安装pip
-python3 -m venv venv --upgrade-deps
-# 安装依赖
-pip install -r requirements.txt
-```
+# License
 
-```bash
-# 生成requirements.txt文件
-pip freeze > requirements.txt
-```
+This project is licensed under the MIT License. See the LICENSE file for details.
 
-# svg2jpg
+Support and Sponsorship
 
-```bash
-python3 vg2jpg.py --width 12000
-```
+If you find this project helpful, you can support its development!
+💖 Sponsor via PayPal: aboutworks@outlook.com
+
+Your support is greatly appreciated!
+
+# Contact
+
+For any questions, suggestions, or feedback, please reach out:
+
+📧 Email: aboutworks@outlook.com

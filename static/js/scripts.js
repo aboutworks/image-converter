@@ -1,73 +1,97 @@
-function checkProgress(filename) {
-    const statusElement = document.getElementById('status');
-    const filesElement = document.getElementById('files');
-
-    function fetchProgress() {
-        fetch(`/progress/${filename}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'Completed') {
-                    statusElement.textContent = 'Conversion Completed!';
-
-                    function createImage(file) {
-                        const li = document.createElement('li');
-                        const img = document.createElement('img');
-                        img.src = `/download/${file}`;
-                        img.alt = file;
-                        img.style.width = '200px';
-                        img.style.height = '200px';
-                        img.style.objectFit = 'contain';
-                        img.style.border = '1px solid #00ff77';
-                        img.style.borderRadius = '5px';
-
-                        img.onload = () => {
-                            console.log('Image loaded successfully:', file);
-                        };
-
-                        img.onerror = () => {
-                            console.error('Error loading image:', file);
-                            img.src = ''; // Set a placeholder or error image
-                            img.alt = 'Failed to load image';
-                            img.style.backgroundColor = 'red';
-                        };
-
-                        li.appendChild(img);
-                        filesElement.appendChild(li);
-                    }
-
-                    data.files.forEach(file => {
-                        createImage(file);
-                    });
-
-                } else {
-                    statusElement.textContent = 'Conversion in Progress...';
-                    setTimeout(fetchProgress, 2000); // Retry after 2 seconds
-                }
-            })
-            .catch(error => {
-                console.error('Error checking progress:', error);
-                statusElement.textContent = 'An error occurred. Please try again.';
-            });
-    }
-
-    fetchProgress();
-}
 
 document.getElementById('file').addEventListener('change', function(e) {
-    var file = e.target.files[0];
-    if (file) {
-        document.getElementById('pdf-preview').textContent = 'Selected file: ' + file.name;
+    var files = e.target.files;
+    var preview = document.getElementById('image-preview');
+    preview.innerHTML = '';
+
+    if (files.length > 0) {
+        for (var i = 0; i < files.length; i++) {
+            var file = files[i];
+
+            var fileInfo = document.createElement('div');
+            fileInfo.textContent = 'Selected file: ' + file.name;
+            preview.appendChild(fileInfo);
+
+            if (file.type.startsWith('image/') && file.type !== 'image/svg+xml') {
+                // 普通图片 (png/jpg/webp)
+                var reader = new FileReader();
+                reader.onload = function(event) {
+                    var img = document.createElement('img');
+                    img.src = event.target.result;
+                    img.style.maxWidth = '200px';
+                    img.style.margin = '10px';
+                    preview.appendChild(img);
+                }
+                reader.readAsDataURL(file);
+
+            } else if (file.type === 'application/pdf') {
+                // PDF文件预览
+                var fileURL = URL.createObjectURL(file);
+                var iframe = document.createElement('iframe');
+                iframe.src = fileURL;
+                iframe.width = "100%";
+                iframe.height = "500px";
+                iframe.style.margin = '10px 0';
+                preview.appendChild(iframe);
+
+            } else if (file.type === 'image/svg+xml') {
+                // SVG 文件预览
+                var reader = new FileReader();
+                reader.onload = function(event) {
+                    var object = document.createElement('object');
+                    object.data = event.target.result;
+                    object.type = 'image/svg+xml';
+                    object.width = '200';
+                    object.height = '200';
+                    object.style.margin = '10px';
+                    preview.appendChild(object);
+                }
+                reader.readAsDataURL(file);
+            }
+        }
     } else {
-        document.getElementById('pdf-preview').textContent = 'No PDF selected';
+        preview.textContent = 'No file selected';
     }
 });
 
-document.getElementById('toggle-upload').addEventListener('click', function() {
-    console.log("click")
-    var uploadSection = document.getElementById('upload-container');
-    if (uploadSection.style.display === 'none') {
+document.addEventListener('DOMContentLoaded', function() {
+    // Route for the upload section
+    page('/', uploadSection);
+    page('/upload', uploadSection);
+    page();
+
+    function uploadSection() {
+        var uploadSection = document.getElementById('upload-container');
         uploadSection.style.display = 'flex';
-    } else {
-        uploadSection.style.display = 'none';
+
+        document.getElementById('toggle-upload').addEventListener('click', function() {
+            if (uploadSection.style.display === 'none') {
+                uploadSection.style.display = 'flex';
+            } else {
+                uploadSection.style.display = 'none';
+            }
+        });
+
+        // Handle form submission
+        var form = document.querySelector('form');
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            var formData = new FormData(form);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Update the content container with the server response
+                var appContainer = document.getElementById('app');
+                appContainer.innerHTML = '<p>' + data.message + '</p>';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
     }
 });

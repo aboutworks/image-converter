@@ -18,11 +18,12 @@ env/
 build/
 dist/
 *.egg-info/
-output/
+
 zipped/
 
 # Upload folders (user-generated)
 uploads/
+outputs/
 *.bak
 *.tmp
 
