@@ -8,8 +8,10 @@
 
 (Optional: Insert some screenshots here showing the application in use.)
 
-![](./imgs/1.png)
-![](./imgs/2.png)
+![](./imgs/1.webp)
+![](./imgs/2.webp)
+![](./imgs/3.webp)
+![](./imgs/4.webp)
 
 # Contributing
 

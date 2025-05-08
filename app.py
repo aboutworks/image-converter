@@ -13,6 +13,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['OUTPUT_FOLDER'] = OUTPUT_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB
 
+# 创建必要目录
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
@@ -25,7 +26,16 @@ def convert_image(input_path, output_path, format):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    all_files = []
+
+    for subdir in os.listdir(OUTPUT_FOLDER):
+        subdir_path = os.path.join(OUTPUT_FOLDER, subdir)
+        if os.path.isdir(subdir_path):
+            for file in os.listdir(subdir_path):
+                file_path = f"{subdir}/{file}"
+                all_files.append(file_path)
+
+    return render_template('index.html', converted_files=all_files)
 
 @app.route('/convert', methods=['POST'])
 def convert():
@@ -48,7 +58,9 @@ def convert():
 
         base_name = os.path.splitext(filename)[0]
         output_filename = f"{base_name}.{convert_type}"
-        output_path = os.path.join(OUTPUT_FOLDER, output_filename)
+        output_dir = os.path.join(OUTPUT_FOLDER, convert_type)
+        os.makedirs(output_dir, exist_ok=True)
+        output_path = os.path.join(output_dir, output_filename)
 
         try:
             convert_image(input_path, output_path, convert_type)
@@ -61,14 +73,15 @@ def convert():
         return jsonify({
             "message": "转换成功",
             "output_file": output_filename,
-            "download_url": f"/download/{output_filename}"
+            "download_url": f"/download/{convert_type}/{output_filename}"
         })
 
     return jsonify({"error": "不支持的文件类型"}), 400
 
-@app.route('/download/<filename>')
-def download_file(filename):
-    return send_from_directory(OUTPUT_FOLDER, filename, as_attachment=True)
+@app.route('/download/<format>/<filename>')
+def download_file(format, filename):
+    folder = os.path.join(OUTPUT_FOLDER, format)
+    return send_from_directory(folder, filename, as_attachment=True)
 
 if __name__ == '__main__':
     app.run(debug=True, port=3010)

@@ -4,16 +4,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF to SVG Converter</title>
+    <title>Image Converter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 
 </head>
 
-<body>
+<body theme="dark">
     <div id="app">
         <header>
-            <h1>PDF to SVG Converter</h1>
-
+            <h1> <span id="theme-toggle" class="theme-toggle">
+                <svg t="1746684402417" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="22702" width="32" height="32"><path d="M512 42.666667C252.8 42.666667 29.12 253.173333 42.666667 512c18.453333 353.013333 429.546667 149.333333 466.666666 426.666667a47.04 47.04 0 0 0 51.573334 40.213333A469.333333 469.333333 0 0 0 512 42.666667zM375.413333 336.746667A58.666667 58.666667 0 1 1 405.333333 259.253333a58.666667 58.666667 0 0 1-29.92 77.493334z m283.52-81.706667a58.666667 58.666667 0 1 1-10.133333 82.346667 58.666667 58.666667 0 0 1 10.133333-82.346667z m-75.573333-7.786667a58.666667 58.666667 0 1 1-42.666667-71.146666 58.666667 58.666667 0 0 1 42.666667 71.146666z m86.08 561.92a72 72 0 1 1 72-72 72.053333 72.053333 0 0 1-72 72zM785.92 517.333333a58.666667 58.666667 0 1 1 58.666667-58.666666 58.666667 58.666667 0 0 1-58.666667 58.666666z" p-id="22703" fill="var(--font-color)"></path></svg>
+            </span>Image</br>Converter</h1>
+           
         </header>
 
         <main>
@@ -22,11 +25,12 @@
         
                 <div>
                     <div class="upload-section">
-                        <label for="fileInput" class="file-label">Select Images</label>
+                        <label for="fileInput" class="file-label">SELECT IMAGES</label>
                         <input type="file" id="fileInput" multiple accept="image/*">
 
-                        <div id="imagePreview" class="image-preview"></div>
+                        <div id="dropZone">Click or Drag Files Here</div>
 
+               
                         <div class="button-container">
                             <button class="full-button" type="button" data-format="svg">Convert to SVG</button>
                             <button class="full-button" type="button" data-format="png">Convert to PNG</button>
@@ -35,35 +39,43 @@
                         </div>
                     </div>
                     <div class="preview-section">
-                        <h2>Image Preview</h2>
+                        <h2>Image Download</h2>
                         <div id="image-list"></div>
-                        <div id="image-preview">
-                            <p>No Files selected</p>
-                        </div>
                     </div>
                 </div>
             </aside>
 
-            <div class="toggle-button" id="toggle-upload"> Toggle Upload </div>
+            <div class="toggle-button" id="toggle-upload"> 
+                <svg t="1746681931524" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="21397" width="16" height="16"><path d="M589.019141 143.276171L589.019141 880.723829 958.709995 512.004093zM434.980859 880.723829l0-737.447658-369.68983 368.727922z" p-id="21398" fill="var(--font-color)"></path></svg>
+            </div>
 
             <section class="converted-files-section">
-                <div id="conversion-popup" class="popup" style="display:none;">
+                <!-- <div id="conversion-popup" class="popup" style="display:none;">
                     <div class="popup-content">
                         <span class="close-button">&times;</span>
                         <h2>Conversion Progress</h2>
                         <div id="conversion-log"></div>
                     </div>
-                </div>
+                </div> -->
+
+                <div>
+                <h2>Preview Files</h2>
+                <div id="imagePreview" class="image-preview"></div>
+            </div>
+
+
+            <div>
                 <h2>Converted Files</h2>
                 <div class="image-grid">
-                    {% for file in svg_files %}
+                    {% for file in converted_files %}
                     <div class="image-item">
-                        <a href="{{ url_for('download_file', filename=file) }}">
-                            <img src="{{ url_for('download_file', filename=file) }}" alt="{{ file }}">
+                        <a href="{{ url_for('download_file', format=file.split('/')[0], filename=file.split('/')[1]) }}">
+                            <img src="{{ url_for('download_file', format=file.split('/')[0], filename=file.split('/')[1]) }}" alt="{{ file }}">
                         </a>
                     </div>
                     {% endfor %}
                 </div>
+            </div>
             </section>
 
 

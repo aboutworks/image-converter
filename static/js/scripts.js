@@ -77,6 +77,35 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// 拖拽上传
+const dropZone = document.getElementById("dropZone");
+const fileInput = document.getElementById("fileInput");
+
+// 点击触发
+dropZone.addEventListener("click", () => {
+  fileInput.click();
+});
+
+// 拖拽效果
+dropZone.addEventListener("dragover", (e) => {
+  e.preventDefault();
+  dropZone.style.borderColor = "#333";
+});
+
+dropZone.addEventListener("dragleave", () => {
+  dropZone.style.borderColor = "#ccc";
+});
+
+dropZone.addEventListener("drop", (e) => {
+  e.preventDefault();
+  dropZone.style.borderColor = "#ccc";
+
+  const files = e.dataTransfer.files;
+  fileInput.files = files;
+
+  // 可选：你可以在此触发上传或预览
+  console.log("Dropped files:", files);
+});
 
 document.querySelectorAll('.full-button').forEach(button => {
     button.addEventListener('click', () => {
@@ -115,3 +144,24 @@ document.querySelectorAll('.full-button').forEach(button => {
         });
     });
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    const themeToggle = document.getElementById('theme-toggle');
+    const body = document.body;
+
+    // 点击按钮切换主题
+    themeToggle.addEventListener('click', () => {
+      const currentTheme = body.getAttribute('theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      body.setAttribute('theme', newTheme);
+
+      // 可选：保存到 localStorage，页面刷新后保持上次主题
+      localStorage.setItem('theme', newTheme);
+    });
+
+    // 页面加载时自动应用上次保存的主题（如果有）
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      body.setAttribute('theme', savedTheme);
+    }
+  });
