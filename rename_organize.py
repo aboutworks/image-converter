@@ -27,8 +27,14 @@ def rename_and_organize_files(directory):
                 os.makedirs(extension_directory)
 
             # Move the renamed file into the extension directory
-            new_file_path = os.path.join(extension_directory, new_filename)
-            shutil.move(file_path, new_file_path)
-            print(f"Renamed '{filename}' to '{new_filename}' and moved to '{extension_directory}'")
-            renamed_files.append(new_file_path)
+            if os.path.abspath(directory) != os.path.abspath(extension_directory):
+                new_file_path = os.path.join(extension_directory, new_filename)
+                shutil.move(file_path, new_file_path)
+                print(f"Renamed '{filename}' to '{new_filename}' and moved to '{extension_directory}'")
+                renamed_files.append(new_file_path)
+            else:
+                new_file_path = os.path.join(directory, new_filename)
+                os.rename(file_path, new_file_path)
+                print(f"Renamed '{filename}' to '{new_filename}' in '{directory}'")
+                renamed_files.append(new_file_path)
     return renamed_files

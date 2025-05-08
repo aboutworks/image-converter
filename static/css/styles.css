@@ -63,3 +63,6 @@ section{
     align-items: center;
     background-color: #eee;
 }
+.full-button{
+    width: 100%;
+}

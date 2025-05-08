@@ -22,24 +22,17 @@
         
                 <div>
                     <div class="upload-section">
-                        <form method="post" enctype="multipart/form-data">
-                            <label for="file">Upload File:</label>
-                            <input type="file" name="files" id="file" accept=".pdf, .jpg, .jpeg, .png, .svg, .webp"
-                                multiple required>
-                            <label>
-                                <input type="checkbox" name="formats" value="svg"> SVG
-                            </label>
-                            <label>
-                                <input type="checkbox" name="formats" value="png"> PNG
-                            </label>
-                            <label>
-                                <input type="checkbox" name="formats" value="jpg"> JPG
-                            </label>
-                            <label>
-                                <input type="checkbox" name="formats" value="webp"> WEBP
-                            </label>
-                            <button type="submit">Upload</button>
-                        </form>
+                        <label for="fileInput" class="file-label">Select Images</label>
+                        <input type="file" id="fileInput" multiple accept="image/*">
+
+                        <div id="imagePreview" class="image-preview"></div>
+
+                        <div class="button-container">
+                            <button class="full-button" type="button" data-format="svg">Convert to SVG</button>
+                            <button class="full-button" type="button" data-format="png">Convert to PNG</button>
+                            <button class="full-button" type="button" data-format="jpg">Convert to JPG</button>
+                            <button class="full-button" type="button" data-format="webp">Convert to WEBP</button>
+                        </div>
                     </div>
                     <div class="preview-section">
                         <h2>Image Preview</h2>

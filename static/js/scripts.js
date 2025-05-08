@@ -1,61 +1,42 @@
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('fileInput');
+    const imagePreviewArea = document.getElementById('imagePreview');
+    const convertButtons = document.querySelectorAll('.button-container button');
+    const fileLabel = document.querySelector('.file-label');
 
-document.getElementById('file').addEventListener('change', function(e) {
-    var files = e.target.files;
-    var preview = document.getElementById('image-preview');
-    preview.innerHTML = '';
+    fileInput.addEventListener('change', function () {
+        imagePreviewArea.innerHTML = ''; // Clear previous previews
+        const files = fileInput.files;
 
-    if (files.length > 0) {
-        for (var i = 0; i < files.length; i++) {
-            var file = files[i];
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
 
-            var fileInfo = document.createElement('div');
-            fileInfo.textContent = 'Selected file: ' + file.name;
-            preview.appendChild(fileInfo);
-
-            if (file.type.startsWith('image/') && file.type !== 'image/svg+xml') {
-                // 普通图片 (png/jpg/webp)
-                var reader = new FileReader();
-                reader.onload = function(event) {
-                    var img = document.createElement('img');
-                    img.src = event.target.result;
-                    img.style.maxWidth = '200px';
-                    img.style.margin = '10px';
-                    preview.appendChild(img);
+                reader.onload = function (e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.style.maxWidth = '100px';
+                    img.style.margin = '5px';
+                    imagePreviewArea.appendChild(img);
                 }
-                reader.readAsDataURL(file);
 
-            } else if (file.type === 'application/pdf') {
-                // PDF文件预览
-                var fileURL = URL.createObjectURL(file);
-                var iframe = document.createElement('iframe');
-                iframe.src = fileURL;
-                iframe.width = "100%";
-                iframe.height = "500px";
-                iframe.style.margin = '10px 0';
-                preview.appendChild(iframe);
-
-            } else if (file.type === 'image/svg+xml') {
-                // SVG 文件预览
-                var reader = new FileReader();
-                reader.onload = function(event) {
-                    var object = document.createElement('object');
-                    object.data = event.target.result;
-                    object.type = 'image/svg+xml';
-                    object.width = '200';
-                    object.height = '200';
-                    object.style.margin = '10px';
-                    preview.appendChild(object);
-                }
                 reader.readAsDataURL(file);
             }
         }
-    } else {
-        preview.textContent = 'No file selected';
-    }
-});
+    });
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Route for the upload section
+    // convertButtons.forEach(button => {
+    //     button.addEventListener('click', function () {
+    //         const format = this.dataset.format;
+    //         const files = fileInput.files;
+
+    //         // Implement conversion logic here
+    //         console.log(`Converting ${files.length} files to ${format}`);
+    //     });
+    // });
+
+    // // Route for the upload section
     page('/', uploadSection);
     page('/upload', uploadSection);
     page();
@@ -73,25 +54,64 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // Handle form submission
-        var form = document.querySelector('form');
-        form.addEventListener('submit', function(event) {
-            event.preventDefault();
+        // var form = document.querySelector('form');
+        // form.addEventListener('submit', function(event) {
+        //     event.preventDefault();
 
-            var formData = new FormData(form);
+        //     var formData = new FormData(form);
 
-            fetch('/upload', {
-                method: 'POST',
-                body: formData,
+        //     fetch('/upload', {
+        //         method: 'POST',
+        //         body: formData,
+        //     })
+        //     .then(response => response.json())
+        //     .then(data => {
+        //         // Update the content container with the server response
+        //         var appContainer = document.getElementById('app');
+        //         appContainer.innerHTML = '<p>' + data.message + '</p>';
+        //     })
+        //     .catch(error => {
+        //         console.error('Error:', error);
+        //     });
+        // });
+    }
+});
+
+
+document.querySelectorAll('.full-button').forEach(button => {
+    button.addEventListener('click', () => {
+        const format = button.dataset.format;
+        const files = document.getElementById('fileInput').files;
+
+        if (!files.length) {
+            alert("请先选择文件！");
+            return;
+        }
+
+        Array.from(files).forEach(file => {
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("convert_type", format);
+
+            fetch("/convert", {
+                method: "POST",
+                body: formData
             })
             .then(response => response.json())
             .then(data => {
-                // Update the content container with the server response
-                var appContainer = document.getElementById('app');
-                appContainer.innerHTML = '<p>' + data.message + '</p>';
+                if (data.error) {
+                    alert("转换失败：" + data.error);
+                } else {
+                    const link = document.createElement('a');
+                    link.href = data.download_url;
+                    link.download = data.output_file;
+                    link.textContent = "下载: " + data.output_file;
+                    document.getElementById("image-list").appendChild(link);
+                }
             })
-            .catch(error => {
-                console.error('Error:', error);
+            .catch(err => {
+                alert("请求失败：" + err);
             });
         });
-    }
+    });
 });
