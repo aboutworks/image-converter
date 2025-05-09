@@ -26,16 +26,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // convertButtons.forEach(button => {
-    //     button.addEventListener('click', function () {
-    //         const format = this.dataset.format;
-    //         const files = fileInput.files;
-
-    //         // Implement conversion logic here
-    //         console.log(`Converting ${files.length} files to ${format}`);
-    //     });
-    // });
-
     // // Route for the upload section
     page('/', uploadSection);
     page('/upload', uploadSection);
@@ -53,27 +43,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Handle form submission
-        // var form = document.querySelector('form');
-        // form.addEventListener('submit', function(event) {
-        //     event.preventDefault();
-
-        //     var formData = new FormData(form);
-
-        //     fetch('/upload', {
-        //         method: 'POST',
-        //         body: formData,
-        //     })
-        //     .then(response => response.json())
-        //     .then(data => {
-        //         // Update the content container with the server response
-        //         var appContainer = document.getElementById('app');
-        //         appContainer.innerHTML = '<p>' + data.message + '</p>';
-        //     })
-        //     .catch(error => {
-        //         console.error('Error:', error);
-        //     });
-        // });
     }
 });
 
@@ -165,3 +134,43 @@ document.addEventListener('DOMContentLoaded', () => {
       body.setAttribute('theme', savedTheme);
     }
   });
+
+  document.getElementById('dwgtopdf').addEventListener('click', () => {
+    const fileInput = document.getElementById('fileInput');
+    const files = fileInput.files;
+
+    if (!files.length) {
+        alert("请先选择 DWG 文件！");
+        return;
+    }
+
+    const file = files[0];
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (ext !== 'dwg') {
+        alert("只支持 DWG 文件！");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    fetch('/dwgtopdf', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            alert("转换失败：" + data.error);
+        } else {
+            const link = document.createElement('a');
+            link.href = data.download_url;
+            link.download = data.output_file;
+            link.textContent = "下载 PDF：" + data.output_file;
+            document.getElementById("image-list").appendChild(link);
+        }
+    })
+    .catch(err => {
+        alert("请求失败：" + err);
+    });
+});
